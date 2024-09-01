@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  fastapi_mongodb_server:
+    image: fastapi_mongodb
+    container_name: fastapi_mongodb_server
+    restart: always
+    environment:
+      MONGODB_URI: mongodb://HongQuan:18122003@mongo:27017/?directConnection=true&serverSelectionTimeoutMS=2000&appName=mongosh+2.3.0
+    ports:
+      - "8000:80"
+    networks:
+      - my_network
+
+  mongo:
+    image: mongo:latest
+    container_name: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: HongQuan
+      MONGO_INITDB_ROOT_PASSWORD: 18122003
+    volumes:
+      - mongodb-AIC2024data:/data/db
+    ports:
+      - "27017:27017"
+    networks:
+      - my_network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 7s
+      timeout: 5s
+      retries: 5
+
+  mongo-express:
+    image: mongo-express:latest
+    container_name: mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: HongQuan 
+      ME_CONFIG_MONGODB_ADMINPASSWORD: 18122003
+      ME_CONFIG_MONGODB_SERVER: mongo
+      ME_CONFIG_MONGODB_URL: mongodb://HongQuan:18122003@mongo:27017/ #mongodb://root:example@mongo:27017/
+      ME_CONFIG_BASICAUTH: false
+    ports:
+      - "8081:8081"
+    depends_on:
+      mongo:
+        condition: service_healthy
+    networks:
+      - my_network
+
+  
+networks:
+  my_network:  
+    driver: bridge
+
+volumes:
+  mongodb-AIC2024data:
